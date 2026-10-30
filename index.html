@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Simulador SABRE Educativo</title>
+  <meta name="description" content="Simulador educativo de un GDS con comandos en formato Sabre: disponibilidad, PNR, tarifas, boletos, asientos, hoteles, autos y colas.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23a3112e'/%3E%3Cpath d='M7 20l18-8-6 12-3-4-9 0z' fill='white'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <svg viewBox="0 0 32 32" width="26" height="26" aria-hidden="true"><rect width="32" height="32" rx="6" fill="currentColor"/><path d="M7 20l18-8-6 12-3-4-9 0z" fill="var(--top-bg)"/></svg>
+      <span class="brand-name">SABRE</span>
+      <span class="brand-sub">Simulador de entrenamiento</span>
+      <span class="badge">EDUCATIVO</span>
+    </div>
+    <nav class="menu" aria-label="Menú principal">
+      <button data-action="newsession" title="Reiniciar la sesión y las áreas de trabajo">Nueva sesión</button>
+      <button data-action="scheme" title="Cambiar colores del emulador">Colores</button>
+      <button data-action="theme" title="Modo claro / oscuro">Tema</button>
+      <button data-action="reset" title="Borrar todos los PNR guardados en este navegador">Borrar datos</button>
+      <button data-action="help" class="primary">Ayuda</button>
+    </nav>
+  </header>
+
+  <div class="toolbar">
+    <div class="areas" role="tablist" aria-label="Áreas de trabajo">
+      <span class="lbl">Área</span>
+      <button role="tab" data-area="A" class="on">A</button>
+      <button role="tab" data-area="B">B</button>
+      <button role="tab" data-area="C">C</button>
+      <button role="tab" data-area="D">D</button>
+      <button role="tab" data-area="E">E</button>
+      <button role="tab" data-area="F">F</button>
+    </div>
+    <div class="quick" aria-label="Accesos rápidos">
+      <button data-insert="1{FECHA}MIAMAD" title="Disponibilidad">✈ Disponibilidad</button>
+      <button data-insert="*R" data-run="1" title="Desplegar PNR">PNR</button>
+      <button data-insert="WP" data-run="1" title="Cotizar">Tarifa</button>
+      <button data-insert="W‡PQ1‡FCASH" title="Emitir boleto">Boleto</button>
+      <button data-insert="4G1*" data-run="1" title="Mapa de asientos">Asientos</button>
+      <button data-insert="HOTMAD/{FECHA}-{FECHA3}2" title="Hoteles">Hotel</button>
+      <button data-insert="QC/" data-run="1" title="Colas">Colas</button>
+    </div>
+  </div>
+
+  <main class="workspace">
+    <section class="emulator" aria-label="Emulador Sabre">
+      <div class="emu-head">
+        <span>Sabre Emulator — Área <b id="areaLbl">A</b></span>
+        <span class="emu-tools">
+          <button data-action="clear" title="Limpiar pantalla (Esc)">Limpiar</button>
+          <button data-action="copy" title="Copiar pantalla">Copiar</button>
+        </span>
+      </div>
+      <div id="screen" class="screen" tabindex="0" aria-live="polite"></div>
+      <form id="cmdForm" class="cmdline" autocomplete="off">
+        <span class="prompt">&gt;</span>
+        <input id="cmd" type="text" spellcheck="false" autocapitalize="characters" aria-label="Entrada de comandos" placeholder="Escriba un comando (ej. SI*1234) y presione Enter">
+        <div class="keys">
+          <button type="button" data-key="‡" title="Cruz de Lorena (tecla \)">‡</button>
+          <button type="button" data-key="¤" title="Cambio (tecla [)">¤</button>
+          <button type="button" data-key="§" title="Fin de ítem (tecla ])">§</button>
+          <button type="submit" class="send">Enter</button>
+        </div>
+      </form>
+    </section>
+
+    <aside class="side">
+      <div class="tabs" role="tablist">
+        <button role="tab" data-tab="pnr" class="on">PNR</button>
+        <button role="tab" data-tab="guide">Guía</button>
+        <button role="tab" data-tab="book">Reservar</button>
+        <button role="tab" data-tab="ref">Comandos</button>
+        <button role="tab" data-tab="records">Registros</button>
+      </div>
+      <div class="panel on" id="tab-pnr"></div>
+      <div class="panel" id="tab-guide"></div>
+      <div class="panel" id="tab-book"></div>
+      <div class="panel" id="tab-ref"></div>
+      <div class="panel" id="tab-records"></div>
+    </aside>
+  </main>
+
+  <footer class="status">
+    <span id="stAgent">SIN SESIÓN</span>
+    <span id="stPcc">PCC A1B2</span>
+    <span id="stArea">ÁREA A</span>
+    <span id="stPnr">SIN PNR</span>
+    <span id="stQ">COLAS 0</span>
+    <span class="grow"></span>
+    <span class="disclaimer">Simulación educativa — no afiliada ni respaldada por Sabre GLBL Inc. Datos ficticios.</span>
+    <span id="stClock"></span>
+  </footer>
+
+  <dialog id="helpDlg">
+    <div class="dlg">
+      <h2>Cómo usar el simulador</h2>
+      <p>Este entorno reproduce el flujo de trabajo de un agente en un GDS con la sintaxis de comandos de Sabre. Todo se ejecuta en tu navegador; los PNR se guardan localmente.</p>
+      <ol>
+        <li>Inicia sesión con <code>SI*1234</code> (cualquier número de agente; no se piden contraseñas).</li>
+        <li>Consulta disponibilidad: <code>115DECMIAMAD</code>.</li>
+        <li>Vende: <code>01Y1</code>. Agrega nombre <code>-PEREZ/JUAN MR</code>, teléfono <code>9305-555-1234-A</code>, ticketing <code>7TAW/</code>, recibido <code>6JUAN</code>.</li>
+        <li>Finaliza con <code>ER</code>, cotiza y guarda con <code>WPRQ</code>, <code>6JUAN§ER</code> y emite con <code>W‡PQ1‡FCASH</code>.</li>
+      </ol>
+      <p><b>Teclas especiales:</b> <kbd>\</kbd> = ‡ (cruz de Lorena), <kbd>[</kbd> = ¤ (cambio), <kbd>]</kbd> = § (fin de ítem). <kbd>↑</kbd>/<kbd>↓</kbd> historial, <kbd>Esc</kbd> limpia pantalla, <kbd>Alt</kbd>+<kbd>1..6</kbd> cambia de área.</p>
+      <p>Escribe <code>HELP</code> en el emulador para ver todos los temas.</p>
+      <p class="muted">Proyecto con fines exclusivamente educativos. Las aerolíneas se usan solo como códigos de referencia; horarios, tarifas, hoteles y autos son generados y ficticios.</p>
+      <form method="dialog"><button class="primary">Entendido</button></form>
+    </div>
+  </dialog>
+
+  <script src="js/data.js"></script>
+  <script src="js/engine.js"></script>
+  <script src="js/lessons.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
